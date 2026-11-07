@@ -478,6 +478,7 @@ $("makeBtn").addEventListener("click", async ()=>{
     $("result").hidden = false;
     $("result").scrollIntoView({behavior:"smooth", block:"start"});
     saveResponse();
+    sendToSheet();
   }catch(e){
     toast("이미지를 만들지 못했어요. 다시 눌러 주세요");
   }finally{
@@ -545,6 +546,24 @@ $("shareTextBtn").addEventListener("click", async ()=>{
     catch(e){ if(e && e.name!=="AbortError") toast("공유하지 못했어요. 이미지를 저장해서 올려 주세요"); }
   });
 })();
+
+// ---------- Google Sheet collection ----------
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbx3IHSXUbWE9vJXDH2YrqhL0-tj_9B7wojtQglJSx-KIu4ECKvDzY6ezYGYgDU1oMlS/exec";
+function visitorId(){
+  try{
+    let v = localStorage.getItem("inf_vid");
+    if(!v){ v = Date.now().toString(36)+Math.random().toString(36).slice(2,10); localStorage.setItem("inf_vid", v); }
+    return v;
+  }catch(e){ return ""; }
+}
+function sendToSheet(){
+  if(!SHEET_URL || SHEET_URL.indexOf("__")===0) return;
+  const data = {id: visitorId()};
+  CATS.forEach(c=>{ if(picks[c.id]) data[c.id] = String(picks[c.id].name).slice(0,100); });
+  try{
+    fetch(SHEET_URL, {method:"POST", mode:"no-cors", headers:{"Content-Type":"text/plain;charset=utf-8"}, body: JSON.stringify(data)}).catch(()=>{});
+  }catch(e){}
+}
 
 // ---------- responses & owner stats ----------
 let dbP = null, userP = null;
